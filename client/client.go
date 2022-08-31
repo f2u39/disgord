@@ -16,3 +16,10 @@ func NewClient(conn net.Conn) *Client {
 		MsgChan: make(chan []byte),
 	}
 }
+
+func (cli *Client) ReceiveMsg() {
+	for {
+		msg := <-cli.MsgChan
+		cli.Conn.Write([]byte(msg))
+	}
+}
