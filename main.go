@@ -1,6 +1,8 @@
 package main
 
-import "disgord/server"
+import (
+	"disgord/server"
+)
 
 const (
 	ip   = "127.0.0.1"

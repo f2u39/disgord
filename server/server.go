@@ -1,10 +1,11 @@
 package server
 
 import (
-	client "disgord/client"
 	"fmt"
 	"log"
 	"net"
+
+	"disgord/user"
 )
 
 type Server struct {
@@ -14,14 +15,14 @@ type Server struct {
 	// A channel for holds incoming msgChan
 	msgChan chan []byte
 
-	// A map holds all clients in the server
-	clients map[*client.Client]bool
+	// A map holds all users in the server
+	users map[*user.User]bool
 
-	// A channel for client checkin the server
-	inChan chan *client.Client
+	// A channel for user inChan the server
+	inChan chan *user.User
 
-	// A channel for client checkout the server
-	outChan chan *client.Client
+	// A channel for user outChan the server
+	outChan chan *user.User
 }
 
 func NewServer(ip string, port int) *Server {
@@ -29,31 +30,40 @@ func NewServer(ip string, port int) *Server {
 		ip:      ip,
 		port:    port,
 		msgChan: make(chan []byte),
-		clients: make(map[*client.Client]bool),
-		inChan:  make(chan *client.Client),
-		outChan: make(chan *client.Client),
+		users:   make(map[*user.User]bool),
+		inChan:  make(chan *user.User),
+		outChan: make(chan *user.User),
 	}
 }
 
 func (s *Server) Select() {
 	for {
 		select {
-		case cli := <-s.inChan:
-			s.clients[cli] = true
-			fmt.Println(s.clients)
-		case cli := <-s.outChan:
-			s.clients[cli] = false
-			fmt.Println(s.clients)
+		case user := <-s.inChan:
+			s.users[user] = true
+			fmt.Println(s.users)
+		case user := <-s.outChan:
+			s.users[user] = false
+			fmt.Println(s.users)
 		case msg := <-s.msgChan:
-			for cli := range s.clients {
-				cli.MsgChan <- msg
+			for user := range s.users {
+				user.MsgChan <- msg
 			}
 		}
 	}
 }
 
-func (s *Server) ReceiveMsg() {
+func (s *Server) ReceiveMsg(conn net.Conn) {
+	for {
+		msg := make([]byte, 1024)
+		_, err := conn.Read(msg)
+		if err != nil {
+			log.Println(err)
+		}
+		println("Server receives message:", string(msg))
 
+		s.msgChan <- msg
+	}
 }
 
 func (s *Server) Serve() {
@@ -63,8 +73,6 @@ func (s *Server) Serve() {
 	}
 	defer lis.Close()
 
-	go s.Select()
-
 	for {
 		conn, err := lis.Accept()
 		if err != nil {
@@ -72,11 +80,9 @@ func (s *Server) Serve() {
 			continue
 		}
 
-		u := client.NewClient(conn)
-		s.inChan <- u
+		go s.ReceiveMsg(conn)
 
-		if conn == nil {
-			s.outChan <- u
-		}
+		u := user.NewUser(conn)
+		s.inChan <- u
 	}
 }
