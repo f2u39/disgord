@@ -9,7 +9,7 @@ frontend/coverage
 # production
 frontend/build
 
-.exe
+*.exe
 .DS_Store
 .env.local
 .env.development.local

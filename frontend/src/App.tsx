@@ -9,14 +9,20 @@ function App() {
         <h2 style={{ color: "lavender" }}>👾Disgord</h2>
         <form>
           <input className="name" />
-          <button className="join" onClick={ join }>
+          <button className="btn" onClick={ join }>
               Join to server
           </button>
+          <button className="btn" onClick={ send }>
+              Send
+          </button>
         </form>
-        
       </header>
     </div>
   );
+}
+
+function send() {
+
 }
 
 function join() {

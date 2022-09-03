@@ -13,10 +13,12 @@ const (
 
 func main() {
 	srv := server.NewServer(ip, port)
-	go srv.Serve()
 
 	e := echo.New()
-
 	e.GET("/join", srv.Join)
+	e.GET("/msg/:msg", srv.Send)
+
+	go srv.Serve()
+
 	e.Logger.Fatal(e.Start(":8080"))
 }

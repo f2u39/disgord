@@ -2,8 +2,6 @@ package server
 
 import (
 	"fmt"
-	"log"
-	"net"
 	"net/http"
 
 	"disgord/user"
@@ -19,29 +17,6 @@ var (
 		},
 	}
 )
-
-func (s *Server) Join(c echo.Context) error {
-	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
-	if err != nil {
-		return err
-	}
-	defer ws.Close()
-
-	for {
-		// Write
-		err := ws.WriteMessage(websocket.TextMessage, []byte("Hello, Client!"))
-		if err != nil {
-			c.Logger().Error(err)
-		}
-
-		// Read
-		_, msg, err := ws.ReadMessage()
-		if err != nil {
-			c.Logger().Error(err)
-		}
-		fmt.Printf("%s\n", msg)
-	}
-}
 
 type Server struct {
 	ip   string
@@ -76,48 +51,84 @@ func (s *Server) Serve() {
 		select {
 		case user := <-s.inChan:
 			s.users[user] = true
-			fmt.Println(s.users)
+			fmt.Println("Someone joined →", s.users)
+
 		case user := <-s.outChan:
 			s.users[user] = false
-			fmt.Println(s.users)
+			fmt.Println("Someone left →", s.users)
+
 		case msg := <-s.msgChan:
 			for user := range s.users {
 				user.MsgChan <- msg
+				fmt.Println("Server send msg to user →", msg)
 			}
 		}
 	}
 }
 
-func (s *Server) ReceiveMsg(conn net.Conn) {
+func (s *Server) KeepListeningThisUser(u *user.User) {
 	for {
-		msg := make([]byte, 1024)
-		_, err := conn.Read(msg)
+		_, msg, err := u.Conn.ReadMessage()
 		if err != nil {
-			log.Println(err)
+			fmt.Println(err)
+			return
 		}
-		println("Server receives message:", string(msg))
 
+		fmt.Println("Message from client:", msg)
 		s.msgChan <- msg
 	}
+
+	// for {
+	// 	msg := make([]byte, 1024)
+	// 	_, err := conn.Read(msg)
+	// 	if err != nil {
+	// 		log.Println(err)
+	// 	}
+	// 	println("Server receives message:", string(msg))
+
+	// 	s.msgChan <- msg
+	// }
 }
 
-func (s *Server) Serve0() {
-	lis, err := net.Listen("tcp4", fmt.Sprintf("%s:%d", s.ip, s.port))
+func (s *Server) Join(c echo.Context) error {
+	conn, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
-	defer lis.Close()
+	defer conn.Close()
 
-	for {
-		conn, err := lis.Accept()
-		if err != nil {
-			log.Println(err)
-			continue
-		}
+	u := user.NewUser(conn)
 
-		go s.ReceiveMsg(conn)
+	s.inChan <- u
 
-		u := user.NewUser(conn)
-		s.inChan <- u
-	}
+	go s.KeepListeningThisUser(u)
+
+	return nil
 }
+
+func (s *Server) Send(c echo.Context) error {
+	msg := c.Param("msg")
+	s.msgChan <- []byte(msg)
+	return nil
+}
+
+// func (s *Server) Serve0() {
+// 	lis, err := net.Listen("tcp4", fmt.Sprintf("%s:%d", s.ip, s.port))
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
+// 	defer lis.Close()
+
+// 	for {
+// 		conn, err := lis.Accept()
+// 		if err != nil {
+// 			log.Println(err)
+// 			continue
+// 		}
+
+// 		go s.ReceiveMsg(conn)
+
+// 		u := user.NewUser(conn)
+// 		s.inChan <- u
+// 	}
+// }
