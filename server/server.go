@@ -4,9 +4,44 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"net/http"
 
 	"disgord/user"
+
+	"github.com/gorilla/websocket"
+	"github.com/labstack/echo/v4"
 )
+
+var (
+	upgrader = websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
+	}
+)
+
+func (s *Server) Join(c echo.Context) error {
+	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
+	if err != nil {
+		return err
+	}
+	defer ws.Close()
+
+	for {
+		// Write
+		err := ws.WriteMessage(websocket.TextMessage, []byte("Hello, Client!"))
+		if err != nil {
+			c.Logger().Error(err)
+		}
+
+		// Read
+		_, msg, err := ws.ReadMessage()
+		if err != nil {
+			c.Logger().Error(err)
+		}
+		fmt.Printf("%s\n", msg)
+	}
+}
 
 type Server struct {
 	ip   string
@@ -36,7 +71,7 @@ func NewServer(ip string, port int) *Server {
 	}
 }
 
-func (s *Server) Select() {
+func (s *Server) Serve() {
 	for {
 		select {
 		case user := <-s.inChan:
@@ -66,7 +101,7 @@ func (s *Server) ReceiveMsg(conn net.Conn) {
 	}
 }
 
-func (s *Server) Serve() {
+func (s *Server) Serve0() {
 	lis, err := net.Listen("tcp4", fmt.Sprintf("%s:%d", s.ip, s.port))
 	if err != nil {
 		fmt.Println(err)

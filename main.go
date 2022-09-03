@@ -2,6 +2,8 @@ package main
 
 import (
 	"disgord/server"
+
+	"github.com/labstack/echo/v4"
 )
 
 const (
@@ -11,5 +13,10 @@ const (
 
 func main() {
 	srv := server.NewServer(ip, port)
-	srv.Serve()
+	go srv.Serve()
+
+	e := echo.New()
+
+	e.GET("/join", srv.Join)
+	e.Logger.Fatal(e.Start(":8080"))
 }
