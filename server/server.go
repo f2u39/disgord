@@ -70,7 +70,7 @@ func (s *Server) KeepListeningThisUser(u *user.User) {
 	for {
 		_, msg, err := u.Conn.ReadMessage()
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("Cannot receive message from this user", err)
 			return
 		}
 
@@ -101,7 +101,7 @@ func (s *Server) Join(c echo.Context) error {
 
 	s.inChan <- u
 
-	go s.KeepListeningThisUser(u)
+	// go s.KeepListeningThisUser(u)
 
 	return nil
 }

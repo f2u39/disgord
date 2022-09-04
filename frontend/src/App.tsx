@@ -1,8 +1,18 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
+import React, { useState } from "react";
 import './App.css';
 
 function App() {
+  const ws = new WebSocket('ws://127.0.0.1:8080/join');
+
+
+  // ws.onopen = () => {
+  //   // ws.send("Hello server!");
+  //   console.log('WebSocket Client Connected');
+  // };
+  // ws.onmessage = (message) => {
+  //   console.log(message);
+  // };
+
   return (
     <div className="App">
       <header className="App-header">
@@ -19,23 +29,14 @@ function App() {
       </header>
     </div>
   );
-}
 
-function send() {
-
-}
-
-function join() {
-  var uri = 'ws://127.0.0.1:8080/join';
-  var ws = new WebSocket(uri)
-
-  ws.onopen = function() {
-    console.log('Connected')
+  function join() {  
+    ws.send('Hello, Server!');
   }
 
-  setInterval(function() {
+  function send() {
     ws.send('Hello, Server!');
-  }, 1000);
+  }
 }
 
 export default App;

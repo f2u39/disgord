@@ -9,6 +9,9 @@ import (
 const (
 	ip   = "127.0.0.1"
 	port = 5002
+
+	socketBufferSize  = 1024
+	messageBufferSize = 256
 )
 
 func main() {
