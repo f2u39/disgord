@@ -6,21 +6,7 @@ var ws: WebSocket;
 function App() {
   const wsRef = useRef(ws);
   const [message, setMessage] = useState('');
-
-  useEffect(() => {
-    // ws.onopen = () => {
-    //   console.log('connected')
-    // }
-
-    // ws.onmessage = (msg) => {
-    //   console.log(msg)
-    // }
-
-    // ws.onclose = () => {
-    //   console.log('closing connection')
-    //   // ws.close()
-    // }
-  }, [])
+  const [history, setHistory] = useState('');
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>)=> {
     setMessage(e.target.value);
@@ -44,6 +30,13 @@ function App() {
               Send
           </button>
         </div>
+        <div>
+          <input 
+            className="history"
+            type="textarea"
+            value={history}
+          />
+        </div>
       </header>
     </div>
   );
@@ -58,6 +51,7 @@ function App() {
   
       ws.onmessage = msg => {
         console.log(msg)
+        setHistory(msg.data);
       }
     }
     // connect();
