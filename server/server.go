@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"disgord/user"
@@ -58,9 +59,11 @@ func (s *Server) Serve() {
 			fmt.Println("Someone left →", s.users)
 
 		case msg := <-s.msgChan:
-			for user := range s.users {
-				user.MsgChan <- msg
-				fmt.Println("Server send msg to user →", msg)
+			for user, ok := range s.users {
+				if ok {
+					user.MsgChan <- msg
+					fmt.Println("Server send msg to user →", string(msg))
+				}
 			}
 		}
 	}
@@ -70,11 +73,11 @@ func (s *Server) KeepListeningThisUser(u *user.User) {
 	for {
 		_, msg, err := u.Conn.ReadMessage()
 		if err != nil {
-			fmt.Println("Cannot receive message from this user", err)
+			s.outChan <- u
 			return
 		}
 
-		fmt.Println("Message from client:", msg)
+		fmt.Println("Message from client:", string(msg))
 		s.msgChan <- msg
 	}
 
@@ -95,13 +98,16 @@ func (s *Server) Join(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
+	// defer conn.Close()
 
 	u := user.NewUser(conn)
+	// fmt.Println("NewUser:", u.Conn)
 
 	s.inChan <- u
 
-	// go s.KeepListeningThisUser(u)
+	// defer func() { s.outChan <- u }()
+
+	go s.KeepListeningThisUser(u)
 
 	return nil
 }
@@ -132,3 +138,22 @@ func (s *Server) Send(c echo.Context) error {
 // 		s.inChan <- u
 // 	}
 // }
+
+func Reader(conn *websocket.Conn) {
+	for {
+		// read in a message
+		messageType, p, err := conn.ReadMessage()
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		// print out that message for clarity
+		fmt.Println(string(p))
+
+		if err := conn.WriteMessage(messageType, p); err != nil {
+			log.Println(err)
+			return
+		}
+
+	}
+}

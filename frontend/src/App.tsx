@@ -1,41 +1,71 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import './App.css';
 
+var ws: WebSocket;
+
 function App() {
-  const ws = new WebSocket('ws://127.0.0.1:8080/join');
+  const wsRef = useRef(ws);
+  const [message, setMessage] = useState('');
 
+  useEffect(() => {
+    // ws.onopen = () => {
+    //   console.log('connected')
+    // }
 
-  // ws.onopen = () => {
-  //   // ws.send("Hello server!");
-  //   console.log('WebSocket Client Connected');
-  // };
-  // ws.onmessage = (message) => {
-  //   console.log(message);
-  // };
+    // ws.onmessage = (msg) => {
+    //   console.log(msg)
+    // }
+
+    // ws.onclose = () => {
+    //   console.log('closing connection')
+    //   // ws.close()
+    // }
+  }, [])
+
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>)=> {
+    setMessage(e.target.value);
+  }
 
   return (
     <div className="App">
       <header className="App-header">
-        <h2 style={{ color: "lavender" }}>👾Disgord</h2>
-        <form>
-          <input className="name" />
+        <h2 style={{ color: "lavender" }}>Disgord</h2>
+        <div className="input-group">
+          <input 
+            className="message"
+            type="text"
+            onChange={onChange}
+            value={message}
+          />
           <button className="btn" onClick={ join }>
               Join to server
           </button>
-          <button className="btn" onClick={ send }>
+          <button className="btn" onClick={ () => send(message) }>
               Send
           </button>
-        </form>
+        </div>
       </header>
     </div>
   );
 
-  function join() {  
-    ws.send('Hello, Server!');
+  function join() {
+    if (!wsRef.current) {
+      ws = new WebSocket('ws://127.0.0.1:8080/join');
+
+      ws.onopen = () => {
+        console.log('connected')
+      }
+  
+      ws.onmessage = msg => {
+        console.log(msg)
+      }
+    }
+    // connect();
   }
 
-  function send() {
-    ws.send('Hello, Server!');
+  function send(msg: string) {
+    // ws.send('Hello, Server!');
+    ws.send(msg);
   }
 }
 

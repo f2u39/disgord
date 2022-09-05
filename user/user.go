@@ -27,7 +27,8 @@ func NewUser(conn *websocket.Conn) *User {
 func (u *User) KeepReceivingMsg() {
 	// defer u.Conn.Close()
 	for msg := range u.MsgChan {
-		fmt.Println("Received msg from server →", msg)
+		fmt.Println("Received msg from server →", string(msg))
+		u.Conn.WriteMessage(websocket.TextMessage, msg)
 	}
 }
 
