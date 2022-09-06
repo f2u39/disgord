@@ -1,6 +1,9 @@
 # Disgord
 
-Learn Goroutines and React.
+Learn Goroutines.
+
+## Status
+❌Stopping
 
 ## Reference
 
