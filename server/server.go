@@ -23,16 +23,16 @@ type Server struct {
 	ip   string
 	port int
 
-	// A channel for holds incoming msgChan
+	// A channel for holds incoming message
 	msgChan chan []byte
 
 	// A map holds all users in the server
 	users map[*user.User]bool
 
-	// A channel for user inChan the server
+	// A channel for user join the server
 	inChan chan *user.User
 
-	// A channel for user outChan the server
+	// A channel for user leave the server
 	outChan chan *user.User
 }
 
@@ -154,6 +154,5 @@ func Reader(conn *websocket.Conn) {
 			log.Println(err)
 			return
 		}
-
 	}
 }
