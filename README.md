@@ -4,7 +4,8 @@ Learn Goroutines.
 
 ## Status
 
-❌Stopping
+- Aug 31, 2022 ⚪️
+- Sep 6, 2022 🔴
 
 ## Reference
 
