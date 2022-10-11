@@ -1,14 +1,10 @@
 # Disgord
 
-Learn Goroutines.
-
-## Status
-
-| Date | Status |
-| --- | --- |
-| Aug 31, 2022 | ⚪️ |
-| Aug 31, 2022 | 🟢 |
-| Sep 6, 2022 | 🔴 |
+| Date | Status | Desc |
+| --- | --- | --- |
+| Aug 31, 2022 | ⚪️ | Learn Goroutines |
+| Aug 31, 2022 | 🟢 | In progress |
+| Sep 6, 2022 | 🔴 | Stop it |
 
 ## References
 
